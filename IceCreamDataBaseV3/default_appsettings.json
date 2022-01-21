@@ -1,0 +1,18 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning",
+      "Microsoft": "Warning"
+    }
+  },
+  "TwitchIrcHub": {
+    "AppIdKey": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  },
+  "ConnectionStrings": {
+    "IcdbV3Db": "server=XXXX;database=XXXX;user=XXXX;password=XXXX"
+  },
+  "DiscordWebhooks": {
+    "Main": "000000000000000000/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+  }
+}
