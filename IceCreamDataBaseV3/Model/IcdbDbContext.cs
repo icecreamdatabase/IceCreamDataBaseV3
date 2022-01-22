@@ -24,6 +24,7 @@ public sealed class IcdbDbContext : DbContext
     public DbSet<Command> Commands { get; set; } = null!;
     public DbSet<CommandGroupLink> CommandGroupLinks { get; set; } = null!;
     public DbSet<CommandGroup> CommandGroups { get; set; } = null!;
+    public DbSet<UserNoticeResponse> UserNoticeResponses { get; set; } = null!;
 
     private IcdbDbContext()
     {
@@ -47,5 +48,16 @@ public sealed class IcdbDbContext : DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.UseMySQL(_fullConString);
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+        
+        Channel.BuildModel(modelBuilder);
+        Command.BuildModel(modelBuilder);
+        CommandGroupLink.BuildModel(modelBuilder);
+        CommandGroup.BuildModel(modelBuilder);
+        UserNoticeResponse.BuildModel(modelBuilder);
     }
 }

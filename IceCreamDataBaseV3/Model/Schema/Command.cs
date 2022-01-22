@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +13,9 @@ public class Command
     [Key]
     [Required]
     public int Id { get; set; }
+    
+    [Required]
+    public int CommandGroupId { get; set; }
 
     [Required]
     public bool Enabled { get; set; } = true;
@@ -53,6 +57,7 @@ public class Command
     [Required]
     public bool TriggerBotOwner { get; set; } = true;
 
+    [ForeignKey(nameof(CommandGroupId))]
     public virtual CommandGroup CommandGroup { get; set; } = null!;
 
     protected internal static void BuildModel(ModelBuilder modelBuilder)
