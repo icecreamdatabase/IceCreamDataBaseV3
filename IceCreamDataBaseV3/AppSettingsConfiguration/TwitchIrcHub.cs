@@ -6,4 +6,5 @@ namespace IceCreamDataBaseV3.AppSettingsConfiguration;
 public class TwitchIrcHub
 {
     public string? AppIdKey { get; init; }
+    public string? HubRootUri { get; init; }
 }

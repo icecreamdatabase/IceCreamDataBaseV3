@@ -13,8 +13,10 @@ public class Bot
     {
         if (string.IsNullOrEmpty(Program.ConfigRoot.TwitchIrcHub.AppIdKey))
             throw new InvalidOperationException("No AppIdKey!");
+        if (string.IsNullOrEmpty(Program.ConfigRoot.TwitchIrcHub.HubRootUri))
+            throw new InvalidOperationException("No HubRootUri!");
 
-        _hub = new IrcHubClient(Program.ConfigRoot.TwitchIrcHub.AppIdKey);
+        _hub = new IrcHubClient(Program.ConfigRoot.TwitchIrcHub.AppIdKey, Program.ConfigRoot.TwitchIrcHub.HubRootUri);
         _hub.IncomingIrcEvents.OnNewIrcPrivMsg += OnNewIrcPrivMsg;
         _hub.IncomingIrcEvents.OnConnId += OnConnId;
         var a = IcdbDbContext.Instance;
@@ -32,11 +34,6 @@ public class Bot
             if (ircPrivMsg.Message.StartsWith("<"))
             {
                 await _hub.OutgoingIrcEvents.SendPrivMsg(new PrivMsgToTwitch(122425204, "icdb", ">"));
-            }
-            else if (ircPrivMsg.Message.StartsWith(">"))
-            {
-                Dictionary<string, string> dict = await _hub.Api.TwitchUsers.IdToLogin(new[] { 38949074 });
-                await _hub.OutgoingIrcEvents.SendPrivMsg(new PrivMsgToTwitch(122425204, "icdb", "xd"));
             }
     }
 }

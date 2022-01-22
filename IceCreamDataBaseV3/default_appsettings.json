@@ -7,7 +7,8 @@
     }
   },
   "TwitchIrcHub": {
-    "AppIdKey": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    "AppIdKey": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "HubRootUri": "http://localhost:4721"
   },
   "ConnectionStrings": {
     "IcdbV3Db": "server=XXXX;database=XXXX;user=XXXX;password=XXXX"
