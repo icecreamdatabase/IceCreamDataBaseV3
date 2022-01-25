@@ -1,13 +1,14 @@
-﻿using IceCreamDataBaseV3.Model;
+﻿using System.Diagnostics;
+using IceCreamDataBaseV3.Handler.PrivMsg;
+using IceCreamDataBaseV3.Model;
 using TwitchIrcHubClient;
-using TwitchIrcHubClient.DataTypes.Parsed.FromTwitch;
-using TwitchIrcHubClient.DataTypes.Parsed.ToTwitch;
 
 namespace IceCreamDataBaseV3;
 
 public class Bot
 {
     private readonly IrcHubClient _hub;
+    private readonly PrivMsgHandler _privMsgHandler;
 
     public Bot()
     {
@@ -17,23 +18,27 @@ public class Bot
             throw new InvalidOperationException("No HubRootUri!");
 
         _hub = new IrcHubClient(Program.ConfigRoot.TwitchIrcHub.AppIdKey, Program.ConfigRoot.TwitchIrcHub.HubRootUri);
-        _hub.IncomingIrcEvents.OnNewIrcPrivMsg += OnNewIrcPrivMsg;
         _hub.IncomingIrcEvents.OnConnId += OnConnId;
-        var a = IcdbDbContext.Instance;
+
+        _privMsgHandler = new PrivMsgHandler(_hub);
     }
 
-    private void OnConnId(string connid)
+    private void OnConnId(string connId)
     {
-        _hub.Api.Connections.SetChannels(122425204, new List<int> { 38949074 });
-    }
+        Console.WriteLine($"Received connId: {connId}");
+        Stopwatch sw = Stopwatch.StartNew();
+        using IcdbDbContext dbContext = new IcdbDbContext();
 
-    private async void OnNewIrcPrivMsg(IrcPrivMsg ircPrivMsg)
-    {
-        Console.WriteLine(ircPrivMsg.Message);
-        if (ircPrivMsg.RoomId == 38949074)
-            if (ircPrivMsg.Message.StartsWith("<"))
-            {
-                await _hub.OutgoingIrcEvents.SendPrivMsg(new PrivMsgToTwitch(122425204, "icdb", ">"));
-            }
+        sw.Stop();
+        Console.WriteLine($"Context creation: {sw.Elapsed.TotalMilliseconds} ms");
+        sw = Stopwatch.StartNew();
+        dbContext.Channels
+            .Where(channel => channel.Enabled)
+            .AsEnumerable()
+            .GroupBy(channel => channel.BotUserId, channel => channel.RoomId)
+            .ToList()
+            .ForEach(grouping => _hub.Api.Connections.SetChannels(grouping.Key, grouping.ToList()));
+        sw.Stop();
+        Console.WriteLine($"Query execution and SetChannels: {sw.Elapsed.TotalMilliseconds} ms");
     }
 }

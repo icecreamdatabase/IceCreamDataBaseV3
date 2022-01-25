@@ -24,6 +24,9 @@ public class Command
     public bool IsRegex { get; set; } = false;
 
     [Required]
+    public bool ShouldReply { get; set; } = false;
+
+    [Required]
     [MaxLength(255)]
     public string TriggerPhrase { get; set; } = null!;
 
@@ -66,6 +69,7 @@ public class Command
         {
             entity.Property(e => e.Enabled).HasDefaultValue(true);
             entity.Property(e => e.IsRegex).HasDefaultValue(false);
+            entity.Property(e => e.ShouldReply).HasDefaultValue(false);
             entity.Property(e => e.CooldownSeconds).HasDefaultValue(5);
             entity.Property(e => e.TimesUsed).HasDefaultValue(0);
             entity.Property(e => e.TriggerNormal).HasDefaultValue(true);

@@ -10,10 +10,6 @@ namespace IceCreamDataBaseV3.Model.Schema;
 [SuppressMessage("ReSharper", "ClassNeverInstantiated.Global")]
 public class CommandGroupLink
 {
-    [Key]
-    [Required]
-    public int Id { get; set; }
-    
     [Required]
     public int CommandGroupId { get; set; }
 
@@ -23,10 +19,6 @@ public class CommandGroupLink
     [Required]
     public int RoomId { get; set; }
 
-    [Required]
-    [MaxLength(255)]
-    public string Name { get; set; } = null!;
-    
     [ForeignKey(nameof(CommandGroupId))]
     public virtual CommandGroup CommandGroup { get; set; } = null!;
 
@@ -37,6 +29,7 @@ public class CommandGroupLink
     {
         modelBuilder.Entity<CommandGroupLink>(entity =>
         {
+            entity.HasKey(nameof(CommandGroupId), nameof(BotUserId), nameof(RoomId));
         });
     }
 }

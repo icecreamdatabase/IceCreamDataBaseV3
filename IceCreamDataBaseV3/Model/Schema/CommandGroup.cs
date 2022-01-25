@@ -14,11 +14,11 @@ public class CommandGroup
     public int Id { get; set; }
 
     [Required]
-    [MaxLength(255)]
-    public string Name { get; set; } = null!;
+    public bool Enabled { get; set; } = true;
 
     [Required]
-    public bool Enabled { get; set; } = true;
+    [MaxLength(255)]
+    public string Name { get; set; } = null!;
     
     public virtual List<CommandGroupLink> CommandGroupLinks { get; set; } = null!;
     

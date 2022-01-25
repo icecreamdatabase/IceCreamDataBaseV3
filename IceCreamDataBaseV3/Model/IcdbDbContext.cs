@@ -16,9 +16,7 @@ public sealed class IcdbDbContext : DbContext
 
     private readonly string _fullConString;
 
-    private static IcdbDbContext? _instance;
-
-    public static IcdbDbContext Instance => _instance ??= new IcdbDbContext();
+    //public static IcdbDbContext Instance => new IcdbDbContext();
 
     public DbSet<Channel> Channels { get; set; } = null!;
     public DbSet<Command> Commands { get; set; } = null!;
@@ -26,11 +24,10 @@ public sealed class IcdbDbContext : DbContext
     public DbSet<CommandGroup> CommandGroups { get; set; } = null!;
     public DbSet<UserNoticeResponse> UserNoticeResponses { get; set; } = null!;
 
-    private IcdbDbContext()
-    {
-        if (_instance != null)
-            throw new InvalidOperationException($"Only one instance of {nameof(IcdbDbContext)} can be created.");
+    private static bool _firstTime;
 
+    public IcdbDbContext()
+    {
         //Try env var first else use appsettings.json
         //string? dbConString = Environment.GetEnvironmentVariable(@"ICDBV3_CONNECTIONSTRINGS_DB");
         //if (string.IsNullOrEmpty(dbConString))
@@ -39,10 +36,10 @@ public sealed class IcdbDbContext : DbContext
             throw new InvalidOperationException("No MySql connection string!");
         _fullConString = dbConString + AdditionalMySqlConfigurationParameters;
 
-        _instance = this;
-
+        if (_firstTime) return;
         Database.EnsureCreated();
-        string createScript = Database.GenerateCreateScript();
+        _firstTime = true;
+        //string createScript = Database.GenerateCreateScript();
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -53,7 +50,7 @@ public sealed class IcdbDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        
+
         Channel.BuildModel(modelBuilder);
         Command.BuildModel(modelBuilder);
         CommandGroupLink.BuildModel(modelBuilder);
