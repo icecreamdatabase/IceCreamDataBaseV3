@@ -12,6 +12,7 @@ namespace IceCreamDataBaseV3.Handler.PrivMsg;
 public class PrivMsgHandler
 {
     private readonly IrcHubClient _hub;
+    private readonly MessageParameterHelper _messageParameterHelper;
 
     private readonly Dictionary<int, ConcurrentBag<(int id, string phrase)>> _commandTriggers = new();
     private readonly Dictionary<int, ConcurrentBag<(int id, Regex expression)>> _commandTriggersRegex = new();
@@ -20,6 +21,7 @@ public class PrivMsgHandler
     {
         _hub = hub;
         _hub.IncomingIrcEvents.OnNewIrcPrivMsg += OnNewIrcPrivMsg;
+        _messageParameterHelper = new MessageParameterHelper(_hub);
     }
 
     private async void OnNewIrcPrivMsg(int botUserId, IrcPrivMsg ircPrivMsg)
@@ -85,7 +87,6 @@ public class PrivMsgHandler
             }
         }
 
-
         _lastUpdate = DateTime.UtcNow;
     }
 
@@ -127,19 +128,55 @@ public class PrivMsgHandler
         Command? command = commands.FirstOrDefault(command => CheckTriggerPermission(ircPrivMsg, command));
         if (command == null) return;
 
+        if (!HasCooldownPassed(ircPrivMsg, command))
+            return;
+
+        string responseMessage = await _messageParameterHelper.HandleMessageParameters(ircPrivMsg, command);
+
         await _hub.OutgoingIrcEvents.SendPrivMsg(
             new PrivMsgToTwitch(
                 botUserId,
                 ircPrivMsg.RoomName,
-                command.Response,
+                responseMessage,
                 null,
                 command.ShouldReply ? ircPrivMsg.Id : null
             )
         );
+
+        command.TimesUsed++;
+        await dbContext.SaveChangesAsync();
     }
 
-    private static bool CheckTriggerPermission(IrcPrivMsg ircPrivMsg, Command? command)
+    private static bool CheckTriggerPermission(IrcPrivMsg ircPrivMsg, Command command)
     {
+        return
+            // Bot owner
+            command.TriggerBotOwner && ircPrivMsg.UserId == 0 ||
+            // Bot admin
+            command.TriggerBotAdmin && ircPrivMsg.UserId == 0 ||
+            // Broadcaster
+            command.TriggerBroadcaster && ircPrivMsg.RoomId == ircPrivMsg.UserId ||
+            // Mod
+            command.TriggerMods && ircPrivMsg.Badges.ContainsKey("asdf") ||
+            // Vips
+            command.TriggerVips && ircPrivMsg.Badges.ContainsKey("asdf") ||
+            //Normal user
+            command.TriggerNormal;
+    }
+
+    private static readonly Dictionary<(int roomId, int commandId), DateTime> CommandLastUsage = new();
+
+    private static bool HasCooldownPassed(IrcPrivMsg ircPrivMsg, Command command)
+    {
+        // TODO: is botOwner / botAdmin check
+        if (CommandLastUsage.ContainsKey((roomId: ircPrivMsg.RoomId, commandId: command.Id)))
+        {
+            TimeSpan timeSinceLastUsage = DateTime.UtcNow - CommandLastUsage[(ircPrivMsg.RoomId, command.Id)];
+            if (timeSinceLastUsage.TotalSeconds < command.CooldownSeconds)
+                return false;
+        }
+
+        CommandLastUsage[(roomId: ircPrivMsg.RoomId, commandId: command.Id)] = DateTime.UtcNow;
         return true;
     }
 }
