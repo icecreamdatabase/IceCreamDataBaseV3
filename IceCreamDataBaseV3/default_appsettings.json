@@ -15,5 +15,9 @@
   },
   "DiscordWebhooks": {
     "Main": "000000000000000000/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+  },
+  "SpecialUsers": {
+    "BotOwnerUserIds": [],
+    "BotAdminUserIds": []
   }
 }

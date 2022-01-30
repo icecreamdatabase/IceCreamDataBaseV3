@@ -32,9 +32,6 @@ public class PrivMsgHandler
         UpdateBagsIfRequired();
         await CheckTriggers(botUserId, ircPrivMsg);
         await CheckTriggersRegex(botUserId, ircPrivMsg);
-
-        // Store command triggers in cache
-        // Next message every X minutes triggers a refresh in the background 
     }
 
     private const int CacheUpdateIntervalSeconds = 30;
@@ -151,9 +148,9 @@ public class PrivMsgHandler
     {
         return
             // Bot owner
-            command.TriggerBotOwner && ircPrivMsg.UserId == 0 ||
+            command.TriggerBotOwner && Program.ConfigRoot.SpecialUsers.BotOwnerUserIds.Contains(ircPrivMsg.UserId) ||
             // Bot admin
-            command.TriggerBotAdmin && ircPrivMsg.UserId == 0 ||
+            command.TriggerBotAdmin && Program.ConfigRoot.SpecialUsers.BotAdminUserIds.Contains(ircPrivMsg.UserId) ||
             // Broadcaster
             command.TriggerBroadcaster && ircPrivMsg.RoomId == ircPrivMsg.UserId ||
             // Mod
@@ -168,8 +165,10 @@ public class PrivMsgHandler
 
     private static bool HasCooldownPassed(IrcPrivMsg ircPrivMsg, Command command)
     {
-        // TODO: is botOwner / botAdmin check
-        if (CommandLastUsage.ContainsKey((roomId: ircPrivMsg.RoomId, commandId: command.Id)))
+        if (!Program.ConfigRoot.SpecialUsers.BotOwnerUserIds.Contains(ircPrivMsg.UserId) &&
+            !Program.ConfigRoot.SpecialUsers.BotAdminUserIds.Contains(ircPrivMsg.UserId) &&
+            CommandLastUsage.ContainsKey((roomId: ircPrivMsg.RoomId, commandId: command.Id))
+           )
         {
             TimeSpan timeSinceLastUsage = DateTime.UtcNow - CommandLastUsage[(ircPrivMsg.RoomId, command.Id)];
             if (timeSinceLastUsage.TotalSeconds < command.CooldownSeconds)
