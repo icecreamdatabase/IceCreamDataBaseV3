@@ -2,7 +2,12 @@
 using System.Text.RegularExpressions;
 using IceCreamDataBaseV3.Model;
 using IceCreamDataBaseV3.Model.Schema;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Asn1.X509.Qualified;
 using TwitchIrcHubClient;
 using TwitchIrcHubClient.DataTypes.Parsed.FromTwitch;
 using TwitchIrcHubClient.DataTypes.Parsed.ToTwitch;
@@ -29,6 +34,7 @@ public class PrivMsgHandler
         if (ircPrivMsg.RoomId != 38949074) return;
 
         Console.WriteLine(ircPrivMsg.Message);
+        await CheckHardCoded(botUserId, ircPrivMsg);
         UpdateBagsIfRequired();
         await CheckTriggers(botUserId, ircPrivMsg);
         await CheckTriggersRegex(botUserId, ircPrivMsg);
@@ -36,6 +42,70 @@ public class PrivMsgHandler
 
     private const int CacheUpdateIntervalSeconds = 30;
     private DateTime _lastUpdate = DateTime.MinValue;
+
+    private async Task CheckHardCoded(int botUserId, IrcPrivMsg ircPrivMsg)
+    {
+        if (!Program.ConfigRoot.SpecialUsers.BotOwnerUserIds.Contains(ircPrivMsg.UserId))
+            return;
+
+        if (ircPrivMsg.Message.StartsWith("<shutdown") ||
+            ircPrivMsg.Message.StartsWith("<sh")
+           )
+        {
+            await _hub.OutgoingIrcEvents.SendPrivMsg(
+                new PrivMsgToTwitch(
+                    botUserId,
+                    ircPrivMsg.RoomName,
+                    "Shutting down gracefully..."
+                )
+            );
+            await Task.Delay(500);
+            _hub.Dispose();
+            await Task.Delay(500);
+            Environment.Exit(0);
+        }
+        else if (ircPrivMsg.Message.StartsWith("<eval "))
+        {
+            string input = ircPrivMsg.Message[6..];
+            if (!string.IsNullOrEmpty(input))
+            {
+                string responseMessage;
+                try
+                {
+                    CancellationTokenSource cts = new CancellationTokenSource();
+                    cts.CancelAfter(2000);
+
+                    object response = await CSharpScript.EvaluateAsync<object>(
+                        input,
+                        ScriptOptions.Default,
+                        ircPrivMsg, // TODO: create parent "globals" object
+                        typeof(IrcPrivMsg),
+                        cts.Token // TODO: This has no effect. This token has to be handled by the script itself
+                    );
+
+                    responseMessage = response.ToString() ?? "⚠Result was null⚠";
+                    if (string.IsNullOrEmpty(responseMessage))
+                        responseMessage = "⚠Result was empty string⚠";
+                }
+                catch (OperationCanceledException)
+                {
+                    responseMessage = "⚠Eval timed out⚠";
+                }
+                catch (Exception e)
+                {
+                    responseMessage = $"⚠{e.Message}⚠";
+                }
+
+                await _hub.OutgoingIrcEvents.SendPrivMsg(
+                    new PrivMsgToTwitch(
+                        botUserId,
+                        ircPrivMsg.RoomName,
+                        responseMessage
+                    )
+                );
+            }
+        }
+    }
 
     private async void UpdateBagsIfRequired()
     {
