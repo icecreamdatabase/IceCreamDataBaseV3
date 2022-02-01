@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
+using MySql.EntityFrameworkCore.DataAnnotations;
 
 namespace IceCreamDataBaseV3.Model.Schema;
 
@@ -28,9 +29,11 @@ public class Command
 
     [Required]
     [MaxLength(255)]
+    [MySqlCharset("utf8mb4")]
     public string TriggerPhrase { get; set; } = null!;
 
     [Required]
+    [MySqlCharset("utf8mb4")]
     public string Response { get; set; } = null!;
 
     [Required]

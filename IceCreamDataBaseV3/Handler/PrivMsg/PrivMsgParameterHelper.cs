@@ -8,7 +8,7 @@ using TwitchIrcHubClient.TwitchIrcHubApi.TwitchUsers;
 
 namespace IceCreamDataBaseV3.Handler.PrivMsg;
 
-public class MessageParameterHelper
+public class PrivMsgParameterHelper
 {
     // @formatter:off
     private static readonly Dictionary<string, string> IceCreamFacts = new()
@@ -84,12 +84,12 @@ public class MessageParameterHelper
 
     private readonly IrcHubClient _hub;
 
-    public MessageParameterHelper(IrcHubClient hub)
+    public PrivMsgParameterHelper(IrcHubClient hub)
     {
         _hub = hub;
     }
 
-    internal async Task<string> HandleMessageParameters(IrcPrivMsg ircPrivMsg, Command command)
+    internal async Task<string> HandlePrivMsgParameters(IrcPrivMsg ircPrivMsg, Command command)
     {
         string response = command.Response;
 

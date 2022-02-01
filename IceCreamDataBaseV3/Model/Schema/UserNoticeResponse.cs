@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
+using MySql.EntityFrameworkCore.DataAnnotations;
 using TwitchIrcHubClient.DataTypes.Parsed.FromTwitch;
 
 namespace IceCreamDataBaseV3.Model.Schema;
@@ -24,6 +25,7 @@ public class UserNoticeResponse
     public UserNoticeMessageId MessageId { get; set; }
 
     [Required]
+    [MySqlCharset("utf8mb4")]
     public string Response { get; set; } = null!;
 
     protected internal static void BuildModel(ModelBuilder modelBuilder)

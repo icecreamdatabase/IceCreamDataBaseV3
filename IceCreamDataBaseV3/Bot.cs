@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using IceCreamDataBaseV3.Handler.PrivMsg;
+using IceCreamDataBaseV3.Handler.UserNotice;
 using IceCreamDataBaseV3.Model;
 using TwitchIrcHubClient;
 
@@ -9,6 +10,7 @@ public class Bot
 {
     private readonly IrcHubClient _hub;
     private readonly PrivMsgHandler _privMsgHandler;
+    private readonly UserNoticeHandler _userNoticeHandler;
 
     public Bot()
     {
@@ -21,6 +23,7 @@ public class Bot
         _hub.IncomingIrcEvents.OnConnId += OnConnId;
 
         _privMsgHandler = new PrivMsgHandler(_hub);
+        _userNoticeHandler = new UserNoticeHandler(_hub);
     }
 
     private void OnConnId(string connId)

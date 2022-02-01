@@ -2,12 +2,9 @@
 using System.Text.RegularExpressions;
 using IceCreamDataBaseV3.Model;
 using IceCreamDataBaseV3.Model.Schema;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.EntityFrameworkCore;
-using Org.BouncyCastle.Asn1.X509.Qualified;
 using TwitchIrcHubClient;
 using TwitchIrcHubClient.DataTypes.Parsed.FromTwitch;
 using TwitchIrcHubClient.DataTypes.Parsed.ToTwitch;
@@ -17,7 +14,7 @@ namespace IceCreamDataBaseV3.Handler.PrivMsg;
 public class PrivMsgHandler
 {
     private readonly IrcHubClient _hub;
-    private readonly MessageParameterHelper _messageParameterHelper;
+    private readonly PrivMsgParameterHelper _privMsgParameterHelper;
 
     private readonly Dictionary<int, ConcurrentBag<(int id, string phrase)>> _commandTriggers = new();
     private readonly Dictionary<int, ConcurrentBag<(int id, Regex expression)>> _commandTriggersRegex = new();
@@ -26,14 +23,13 @@ public class PrivMsgHandler
     {
         _hub = hub;
         _hub.IncomingIrcEvents.OnNewIrcPrivMsg += OnNewIrcPrivMsg;
-        _messageParameterHelper = new MessageParameterHelper(_hub);
+        _privMsgParameterHelper = new PrivMsgParameterHelper(_hub);
     }
 
     private async void OnNewIrcPrivMsg(int botUserId, IrcPrivMsg ircPrivMsg)
     {
-        if (ircPrivMsg.RoomId != 38949074) return;
+        Console.WriteLine( $"{botUserId} <-- #{ircPrivMsg.RoomName} {ircPrivMsg.UserName}: {ircPrivMsg.Message}");
 
-        Console.WriteLine(ircPrivMsg.Message);
         await CheckHardCoded(botUserId, ircPrivMsg);
         UpdateBagsIfRequired();
         await CheckTriggers(botUserId, ircPrivMsg);
@@ -198,7 +194,7 @@ public class PrivMsgHandler
         if (!HasCooldownPassed(ircPrivMsg, command))
             return;
 
-        string responseMessage = await _messageParameterHelper.HandleMessageParameters(ircPrivMsg, command);
+        string responseMessage = await _privMsgParameterHelper.HandlePrivMsgParameters(ircPrivMsg, command);
 
         await _hub.OutgoingIrcEvents.SendPrivMsg(
             new PrivMsgToTwitch(
