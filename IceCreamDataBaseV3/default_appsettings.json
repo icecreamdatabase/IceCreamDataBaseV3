@@ -8,10 +8,10 @@
   },
   "TwitchIrcHub": {
     "AppIdKey": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-    "HubRootUri": "http://localhost:4721"
+    "HubRootUri": "http://localhost:4720"
   },
   "ConnectionStrings": {
-    "IcdbV3Db": "server=XXXX;database=XXXX;user=XXXX;password=XXXX"
+    "IcdbV3Db": "server=/root/mysqld.sock;protocol=unix;database=XXXX;user=XXXX;password=XXXX"
   },
   "DiscordWebhooks": {
     "Main": "000000000000000000/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"

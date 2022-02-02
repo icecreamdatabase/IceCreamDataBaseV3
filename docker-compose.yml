@@ -1,11 +1,11 @@
 version: '3.3'
 
 services:
-  ttsapi:
+  icecreamdatabasev3:
     build: .
     container_name: IceCreamDataBaseV3
-    env_file:
-      - .env
+    #env_file:
+    #  - .env
     network_mode: bridge
     volumes:
       - /var/run/mysqld/mysqld.sock:/root/mysqld.sock:rw

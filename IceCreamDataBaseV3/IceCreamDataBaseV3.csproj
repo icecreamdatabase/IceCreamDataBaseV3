@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\TwitchIrcHubClient\TwitchIrcHubClient\TwitchIrcHubClient.csproj" />
+    <ProjectReference Include="..\TwitchIrcHubClient\TwitchIrcHubClient.csproj" />
   </ItemGroup>
 
   <ItemGroup>

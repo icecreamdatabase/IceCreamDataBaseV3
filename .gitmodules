@@ -1,0 +1,3 @@
+[submodule "TwitchIrcHubClient"]
+	path = TwitchIrcHubClient
+	url = git@github.com:icecreamdatabase/TwitchIrcHubClient.git
