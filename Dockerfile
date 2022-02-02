@@ -1,20 +1,24 @@
-﻿FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
+﻿FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build-env
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
 
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
-WORKDIR /src
-COPY ["IceCreamDataBaseV3/IceCreamDataBaseV3.csproj", "IceCreamDataBaseV3/"]
-RUN dotnet restore "IceCreamDataBaseV3/IceCreamDataBaseV3.csproj"
-COPY . .
-WORKDIR "/src/IceCreamDataBaseV3"
-RUN dotnet build "IceCreamDataBaseV3.csproj" -c Release -o /app/build
+COPY *.sln .
+COPY TwitchIrcHubClient/*.csproj ./TwitchIrcHubClient/
+COPY IceCreamDataBaseV3/*.csproj ./IceCreamDataBaseV3/
 
-FROM build AS publish
-RUN dotnet publish "IceCreamDataBaseV3.csproj" -c Release -o /app/publish
+RUN ls -la
+RUN ls -la TwitchIrcHubClient
+RUN ls -la IceCreamDataBaseV3
 
-FROM base AS final
+RUN dotnet restore
+
+COPY TwitchIrcHubClient/. ./TwitchIrcHubClient/
+COPY IceCreamDataBaseV3/. ./IceCreamDataBaseV3/
+
+RUN dotnet publish -c Release -o /app/publish
+
+FROM mcr.microsoft.com/dotnet/runtime:6.0 AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=build-env /app/publish .
 ENTRYPOINT ["dotnet", "IceCreamDataBaseV3.dll"]
