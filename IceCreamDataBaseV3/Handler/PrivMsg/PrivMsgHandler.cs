@@ -16,8 +16,11 @@ public class PrivMsgHandler
     private readonly IrcHubClient _hub;
     private readonly PrivMsgParameterHelper _privMsgParameterHelper;
 
-    private readonly Dictionary<int, ConcurrentBag<(int id, string phrase)>> _commandTriggers = new();
-    private readonly Dictionary<int, ConcurrentBag<(int id, Regex expression)>> _commandTriggersRegex = new();
+    private readonly ConcurrentDictionary<int, ConcurrentDictionary<int, ConcurrentBag<(int id, string phrase)>>>
+        _commandTriggers = new();
+
+    private readonly ConcurrentDictionary<int, ConcurrentDictionary<int, ConcurrentBag<(int id, Regex expression)>>>
+        _commandTriggersRegex = new();
 
     public PrivMsgHandler(IrcHubClient hub)
     {
@@ -28,7 +31,7 @@ public class PrivMsgHandler
 
     private async void OnNewIrcPrivMsg(int botUserId, IrcPrivMsg ircPrivMsg)
     {
-        Console.WriteLine( $"{botUserId} <-- #{ircPrivMsg.RoomName} {ircPrivMsg.UserName}: {ircPrivMsg.Message}");
+        Console.WriteLine($"{botUserId} <-- #{ircPrivMsg.RoomName} {ircPrivMsg.UserName}: {ircPrivMsg.Message}");
 
         await CheckHardCoded(botUserId, ircPrivMsg);
         UpdateBagsIfRequired();
@@ -114,17 +117,29 @@ public class PrivMsgHandler
             .Include(channel => channel.CommandGroupLinks)
             .ThenInclude(cgl => cgl.CommandGroup)
             .ThenInclude(cg => cg.Commands)
+            .Distinct()
             .ToList();
 
         foreach (Channel channel in channels)
         {
-            if (!_commandTriggers.ContainsKey(channel.RoomId))
-                _commandTriggers[channel.RoomId] = new ConcurrentBag<(int id, string phrase)>();
-            if (!_commandTriggersRegex.ContainsKey(channel.RoomId))
-                _commandTriggersRegex[channel.RoomId] = new ConcurrentBag<(int id, Regex expression)>();
+            if (!_commandTriggers.ContainsKey(channel.BotUserId))
+                _commandTriggers[channel.BotUserId] =
+                    new ConcurrentDictionary<int, ConcurrentBag<(int id, string phrase)>>();
 
-            _commandTriggers[channel.RoomId].Clear();
-            _commandTriggersRegex[channel.RoomId].Clear();
+            if (!_commandTriggers[channel.BotUserId].ContainsKey(channel.RoomId))
+                _commandTriggers[channel.BotUserId][channel.RoomId] =
+                    new ConcurrentBag<(int id, string phrase)>();
+
+            if (!_commandTriggersRegex.ContainsKey(channel.BotUserId))
+                _commandTriggersRegex[channel.BotUserId] =
+                    new ConcurrentDictionary<int, ConcurrentBag<(int id, Regex expression)>>();
+
+            if (!_commandTriggersRegex[channel.BotUserId].ContainsKey(channel.RoomId))
+                _commandTriggersRegex[channel.BotUserId][channel.RoomId] =
+                    new ConcurrentBag<(int id, Regex expression)>();
+
+            _commandTriggers[channel.BotUserId][channel.RoomId].Clear();
+            _commandTriggersRegex[channel.BotUserId][channel.RoomId].Clear();
 
             List<Command> commands = channel.CommandGroupLinks
                 .Select(cgl => cgl.CommandGroup)
@@ -136,7 +151,7 @@ public class PrivMsgHandler
             {
                 if (command.IsRegex)
                 {
-                    _commandTriggersRegex[channel.RoomId].Add((command.Id,
+                    _commandTriggersRegex[channel.BotUserId][channel.RoomId].Add((command.Id,
                         new Regex(
                             command.TriggerPhrase,
                             RegexOptions.Compiled & RegexOptions.CultureInvariant & RegexOptions.IgnoreCase,
@@ -145,7 +160,7 @@ public class PrivMsgHandler
                 }
                 else
                 {
-                    _commandTriggers[channel.RoomId].Add((command.Id, command.TriggerPhrase + " "));
+                    _commandTriggers[channel.BotUserId][channel.RoomId].Add((command.Id, command.TriggerPhrase + " "));
                 }
             }
         }
@@ -155,11 +170,14 @@ public class PrivMsgHandler
 
     private async Task CheckTriggers(int botUserId, IrcPrivMsg ircPrivMsg)
     {
-        if (!_commandTriggers.ContainsKey(ircPrivMsg.RoomId)) return;
+        if (!_commandTriggers.ContainsKey(botUserId) ||
+            !_commandTriggers[botUserId].ContainsKey(ircPrivMsg.RoomId)
+           )
+            return;
 
         string inputMessage = ircPrivMsg.Message + " ";
 
-        List<int> matchedIds = _commandTriggers[ircPrivMsg.RoomId]
+        List<int> matchedIds = _commandTriggers[botUserId][ircPrivMsg.RoomId]
             .Where(trigger => inputMessage.StartsWith(trigger.phrase))
             .Select(trigger => trigger.id)
             .ToList();
@@ -169,9 +187,12 @@ public class PrivMsgHandler
 
     private async Task CheckTriggersRegex(int botUserId, IrcPrivMsg ircPrivMsg)
     {
-        if (!_commandTriggersRegex.ContainsKey(ircPrivMsg.RoomId)) return;
+        if (!_commandTriggersRegex.ContainsKey(botUserId) ||
+            !_commandTriggersRegex[botUserId].ContainsKey(ircPrivMsg.RoomId)
+           )
+            return;
 
-        List<int> matchedIds = _commandTriggersRegex[ircPrivMsg.RoomId]
+        List<int> matchedIds = _commandTriggersRegex[botUserId][ircPrivMsg.RoomId]
             .Where(trigger => trigger.expression.IsMatch(ircPrivMsg.Message))
             .Select(trigger => trigger.id)
             .ToList();
