@@ -18,20 +18,19 @@ public class UserNoticeHandler
         _hub.IncomingIrcEvents.OnNewIrcUserNotice += IncomingIrcEventsOnOnNewIrcUserNotice;
     }
 
-    private async void IncomingIrcEventsOnOnNewIrcUserNotice(int botuserid, IrcUserNotice ircUserNotice)
+    private async void IncomingIrcEventsOnOnNewIrcUserNotice(int botUserId, IrcUserNotice ircUserNotice)
     {
-        Console.WriteLine("-----------------------" + ircUserNotice.MessageId);
         UpdateBagsIfRequired();
 
-        if (!_userNoticeResponses.ContainsKey(botuserid) ||
-            !_userNoticeResponses[botuserid].Contains(ircUserNotice.RoomId)
+        if (!_userNoticeResponses.ContainsKey(botUserId) ||
+            !_userNoticeResponses[botUserId].Contains(ircUserNotice.RoomId)
            )
             return;
 
         await using IcdbDbContext dbContext = new IcdbDbContext();
 
         string? response = dbContext.UserNoticeResponses
-            .FirstOrDefault(unr => unr.BotUserId == botuserid &&
+            .FirstOrDefault(unr => unr.BotUserId == botUserId &&
                                    unr.RoomId == ircUserNotice.RoomId &&
                                    unr.MessageId == ircUserNotice.MessageId)
             ?.Response;
@@ -39,11 +38,16 @@ public class UserNoticeHandler
         if (string.IsNullOrEmpty(response))
             return;
 
+        string responseMessage = UserNoticeParameterHelper.HandleUserNoticeParameters(ircUserNotice, response);
+        
+        Console.WriteLine($"{botUserId} <-- #{ircUserNotice.RoomName}: {ircUserNotice.MessageId.ToString()}");
+        Console.WriteLine($"{botUserId} --> #{ircUserNotice.RoomName}: {response}");
+
         await _hub.OutgoingIrcEvents.SendPrivMsg(
             new PrivMsgToTwitch(
-                botuserid,
+                botUserId,
                 ircUserNotice.RoomName,
-                UserNoticeParameterHelper.HandleUserNoticeParameters(ircUserNotice, response)
+                responseMessage
             )
         );
     }
