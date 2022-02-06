@@ -178,7 +178,7 @@ public class PrivMsgHandler
         string inputMessage = ircPrivMsg.Message + " ";
 
         List<int> matchedIds = _commandTriggers[botUserId][ircPrivMsg.RoomId]
-            .Where(trigger => inputMessage.StartsWith(trigger.phrase))
+            .Where(trigger => inputMessage.ToLowerInvariant().StartsWith(trigger.phrase.ToLowerInvariant()))
             .Select(trigger => trigger.id)
             .ToList();
 
