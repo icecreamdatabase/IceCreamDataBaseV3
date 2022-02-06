@@ -40,7 +40,10 @@ public class Bot
             .AsEnumerable()
             .GroupBy(channel => channel.BotUserId, channel => channel.RoomId)
             .ToList()
-            .ForEach(grouping => _hub.Api.Connections.SetChannels(grouping.Key, grouping.ToList()));
+            .ForEach(grouping => _hub.Api.Connections
+                .SetChannels(grouping.Key, grouping.ToList())
+                .ConfigureAwait(false)
+            );
         sw.Stop();
         Console.WriteLine($"Query execution and SetChannels: {sw.Elapsed.TotalMilliseconds} ms");
     }
