@@ -31,7 +31,7 @@ public class PrivMsgHandler
 
     private async void OnNewIrcPrivMsg(int botUserId, IrcPrivMsg ircPrivMsg)
     {
-        Console.WriteLine($"{botUserId} <-- #{ircPrivMsg.RoomName} {ircPrivMsg.UserName}: {ircPrivMsg.Message}");
+        //Console.WriteLine($"{botUserId} <-- #{ircPrivMsg.RoomName} {ircPrivMsg.UserName}: {ircPrivMsg.Message}");
 
         await CheckHardCoded(botUserId, ircPrivMsg);
         UpdateBagsIfRequired();
@@ -216,6 +216,9 @@ public class PrivMsgHandler
             return;
 
         string responseMessage = await _privMsgParameterHelper.HandlePrivMsgParameters(ircPrivMsg, command);
+        
+        Console.WriteLine($"{botUserId} <-- #{ircPrivMsg.RoomName} {ircPrivMsg.UserName}: {ircPrivMsg.Message}");
+        Console.WriteLine($"{botUserId} --> #{ircPrivMsg.RoomName}: {responseMessage}");
 
         await _hub.OutgoingIrcEvents.SendPrivMsg(
             new PrivMsgToTwitch(
