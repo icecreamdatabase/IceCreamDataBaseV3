@@ -16,8 +16,6 @@ public sealed class IcdbDbContext : DbContext
 
     private readonly string _fullConString;
 
-    //public static IcdbDbContext Instance => new IcdbDbContext();
-
     public DbSet<Channel> Channels { get; set; } = null!;
     public DbSet<Command> Commands { get; set; } = null!;
     public DbSet<CommandGroupLink> CommandGroupLinks { get; set; } = null!;
@@ -28,9 +26,6 @@ public sealed class IcdbDbContext : DbContext
 
     public IcdbDbContext()
     {
-        //Try env var first else use appsettings.json
-        //string? dbConString = Environment.GetEnvironmentVariable(@"ICDBV3_CONNECTIONSTRINGS_DB");
-        //if (string.IsNullOrEmpty(dbConString))
         string? dbConString = Program.ConfigRoot.ConnectionStrings.IcdbV3Db;
         if (string.IsNullOrEmpty(dbConString))
             throw new InvalidOperationException("No MySql connection string!");

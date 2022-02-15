@@ -216,19 +216,26 @@ public class PrivMsgHandler
             return;
 
         string responseMessage = await _privMsgParameterHelper.HandlePrivMsgParameters(ircPrivMsg, command);
-        
+
         Console.WriteLine($"{botUserId} <-- #{ircPrivMsg.RoomName} {ircPrivMsg.UserName}: {ircPrivMsg.Message}");
         Console.WriteLine($"{botUserId} --> #{ircPrivMsg.RoomName}: {responseMessage}");
 
-        await _hub.OutgoingIrcEvents.SendPrivMsg(
-            new PrivMsgToTwitch(
-                botUserId,
-                ircPrivMsg.RoomName,
-                responseMessage,
-                null,
-                command.ShouldReply ? ircPrivMsg.Id : null
-            )
-        );
+        string[] splitMessage = responseMessage.Split("{nl}");
+
+        foreach (string message in splitMessage)
+        {
+            await _hub.OutgoingIrcEvents.SendPrivMsg(
+                new PrivMsgToTwitch(
+                    botUserId,
+                    ircPrivMsg.RoomName,
+                    message,
+                    null,
+                    command.ShouldReply ? ircPrivMsg.Id : null,
+                    splitMessage.Length > 1
+                )
+            );
+        }
+
 
         command.TimesUsed++;
         await dbContext.SaveChangesAsync();
