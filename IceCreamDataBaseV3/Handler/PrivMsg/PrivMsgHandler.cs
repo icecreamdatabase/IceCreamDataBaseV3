@@ -243,19 +243,19 @@ public class PrivMsgHandler
 
     private static bool CheckTriggerPermission(IrcPrivMsg ircPrivMsg, Command command)
     {
-        return
-            // Bot owner
-            command.TriggerBotOwner && Program.ConfigRoot.SpecialUsers.BotOwnerUserIds.Contains(ircPrivMsg.UserId) ||
-            // Bot admin
-            command.TriggerBotAdmin && Program.ConfigRoot.SpecialUsers.BotAdminUserIds.Contains(ircPrivMsg.UserId) ||
-            // Broadcaster
-            command.TriggerBroadcaster && ircPrivMsg.RoomId == ircPrivMsg.UserId ||
-            // Mod
-            command.TriggerMods && ircPrivMsg.Badges.ContainsKey("asdf") ||
-            // Vips
-            command.TriggerVips && ircPrivMsg.Badges.ContainsKey("asdf") ||
-            //Normal user
-            command.TriggerNormal;
+        bool isBotOwner = Program.ConfigRoot.SpecialUsers.BotOwnerUserIds.Contains(ircPrivMsg.UserId);
+        bool isBotAdmin = Program.ConfigRoot.SpecialUsers.BotAdminUserIds.Contains(ircPrivMsg.UserId);
+        bool isBroadCaster = ircPrivMsg.RoomId == ircPrivMsg.UserId;
+        bool isMod = ircPrivMsg.Badges.ContainsKey("moderator");
+        bool isVip = ircPrivMsg.Badges.ContainsKey("vip");
+        bool isNormal = /* !isBotOwner && !isBotAdmin &&*/ !isBroadCaster && !isMod && isVip;
+
+        return command.TriggerBotOwner && isBotOwner ||
+               command.TriggerBotAdmin && isBotAdmin ||
+               command.TriggerBroadcaster && isBroadCaster ||
+               command.TriggerMods && isMod ||
+               command.TriggerVips && isVip ||
+               command.TriggerNormal && isNormal;
     }
 
     private static readonly Dictionary<(int roomId, int commandId), DateTime> CommandLastUsage = new();
