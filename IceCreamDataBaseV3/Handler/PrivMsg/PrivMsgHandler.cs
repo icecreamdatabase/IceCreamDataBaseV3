@@ -248,7 +248,7 @@ public class PrivMsgHandler
         bool isBroadCaster = ircPrivMsg.RoomId == ircPrivMsg.UserId;
         bool isMod = ircPrivMsg.Badges.ContainsKey("moderator");
         bool isVip = ircPrivMsg.Badges.ContainsKey("vip");
-        bool isNormal = /* !isBotOwner && !isBotAdmin &&*/ !isBroadCaster && !isMod && isVip;
+        bool isNormal = /* !isBotOwner && !isBotAdmin &&*/ !isBroadCaster && !isMod && !isVip;
 
         return command.TriggerBotOwner && isBotOwner ||
                command.TriggerBotAdmin && isBotAdmin ||
