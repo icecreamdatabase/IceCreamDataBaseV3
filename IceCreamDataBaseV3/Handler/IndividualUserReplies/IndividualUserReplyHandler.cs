@@ -55,7 +55,7 @@ public class IndividualUserReplyHandler
             foreach (IndividualUserReply reply in replies)
             {
                 _triggers[(channel.BotUserId, channel.RoomId, reply.TriggerUserId)] =
-                    (reply.TriggerPhrase, reply.Response);
+                    (triggerPhrase: reply.TriggerPhrase.Trim(), triggerResponse: reply.Response.Trim());
                 //_triggers[channel.BotUserId][channel.RoomId][reply.TriggerUserId] = (reply.TriggerPhrase, reply.Response);
             }
         }
