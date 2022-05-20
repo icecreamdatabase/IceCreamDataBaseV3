@@ -6,9 +6,9 @@ using TwitchIrcHubClient;
 using TwitchIrcHubClient.DataTypes.Parsed.FromTwitch;
 using TwitchIrcHubClient.TwitchIrcHubApi.TwitchUsers;
 
-namespace IceCreamDataBaseV3.Handler.PrivMsg;
+namespace IceCreamDataBaseV3.Handler.Commands;
 
-public class PrivMsgParameterHelper
+public class CommandParameterHelper
 {
     // @formatter:off
     private static readonly Dictionary<string, string> IceCreamFacts = new()
@@ -84,7 +84,7 @@ public class PrivMsgParameterHelper
 
     private readonly IrcHubClient _hub;
 
-    public PrivMsgParameterHelper(IrcHubClient hub)
+    public CommandParameterHelper(IrcHubClient hub)
     {
         _hub = hub;
     }

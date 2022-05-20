@@ -9,12 +9,12 @@ using TwitchIrcHubClient;
 using TwitchIrcHubClient.DataTypes.Parsed.FromTwitch;
 using TwitchIrcHubClient.DataTypes.Parsed.ToTwitch;
 
-namespace IceCreamDataBaseV3.Handler.PrivMsg;
+namespace IceCreamDataBaseV3.Handler.Commands;
 
-public class PrivMsgHandler
+public class CommandHandler
 {
     private readonly IrcHubClient _hub;
-    private readonly PrivMsgParameterHelper _privMsgParameterHelper;
+    private readonly CommandParameterHelper _commandParameterHelper;
 
     private readonly ConcurrentDictionary<int, ConcurrentDictionary<int, ConcurrentBag<(int id, string phrase)>>>
         _commandTriggers = new();
@@ -22,16 +22,17 @@ public class PrivMsgHandler
     private readonly ConcurrentDictionary<int, ConcurrentDictionary<int, ConcurrentBag<(int id, Regex expression)>>>
         _commandTriggersRegex = new();
 
-    public PrivMsgHandler(IrcHubClient hub)
+    public CommandHandler(IrcHubClient hub)
     {
         _hub = hub;
         _hub.IncomingIrcEvents.OnNewIrcPrivMsg += OnNewIrcPrivMsg;
-        _privMsgParameterHelper = new PrivMsgParameterHelper(_hub);
+        _commandParameterHelper = new CommandParameterHelper(_hub);
     }
 
     private async void OnNewIrcPrivMsg(int botUserId, IrcPrivMsg ircPrivMsg)
     {
         //Console.WriteLine($"{botUserId} <-- #{ircPrivMsg.RoomName} {ircPrivMsg.UserName}: {ircPrivMsg.Message}");
+        return;
 
         await CheckHardCoded(botUserId, ircPrivMsg);
         UpdateBagsIfRequired();
@@ -215,7 +216,7 @@ public class PrivMsgHandler
         if (!HasCooldownPassed(ircPrivMsg, command))
             return;
 
-        string responseMessage = await _privMsgParameterHelper.HandlePrivMsgParameters(ircPrivMsg, command);
+        string responseMessage = await _commandParameterHelper.HandlePrivMsgParameters(ircPrivMsg, command);
 
         Console.WriteLine($"{botUserId} <-- #{ircPrivMsg.RoomName} {ircPrivMsg.UserName}: {ircPrivMsg.Message}");
         Console.WriteLine($"{botUserId} --> #{ircPrivMsg.RoomName}: {responseMessage}");

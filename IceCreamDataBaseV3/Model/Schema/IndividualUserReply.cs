@@ -1,43 +1,46 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
+using MySql.EntityFrameworkCore.DataAnnotations;
 
 namespace IceCreamDataBaseV3.Model.Schema;
 
 [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
 [SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
 [SuppressMessage("ReSharper", "ClassNeverInstantiated.Global")]
-public class Channel
+public class IndividualUserReply
 {
     [Required]
     public int BotUserId { get; set; }
-    
+
     [Required]
     public int RoomId { get; set; }
 
+    [ForeignKey($"{nameof(BotUserId)},{nameof(RoomId)}")]
+    public virtual Channel Channel { get; set; } = null!;
+
     [Required]
-    [MaxLength(25)]
-    public string ChannelName { get; set; } = null!;
+    public int TriggerUserId { get; set; }
 
     [Required]
     public bool Enabled { get; set; } = true;
 
     [Required]
-    public int MaxIrcMessageLength { get; set; } = 450;
+    [MaxLength(255)]
+    [MySqlCharset("utf8mb4")]
+    public string TriggerPhrase { get; set; } = null!;
 
-    public virtual List<CommandGroupLink> CommandGroupLinks { get; set; } = null!;
-    
-    public virtual List<UserNoticeResponse> UserNoticeResponses { get; set; } = null!;
-    
-    public virtual List<IndividualUserReply> IndividualUserReplies { get; set; } = null!;
+    [Required]
+    [MySqlCharset("utf8mb4")]
+    public string Response { get; set; } = null!;
 
     protected internal static void BuildModel(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Channel>(entity =>
+        modelBuilder.Entity<IndividualUserReply>(entity =>
         {
-            entity.HasKey(nameof(BotUserId), nameof(RoomId));
             entity.Property(e => e.Enabled).HasDefaultValue(true);
-            entity.Property(e => e.MaxIrcMessageLength).HasDefaultValue(450);
+            entity.HasKey(nameof(BotUserId), nameof(RoomId), nameof(TriggerUserId), nameof(TriggerPhrase));
         });
     }
 }

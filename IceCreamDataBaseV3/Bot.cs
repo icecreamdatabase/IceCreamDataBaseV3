@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
-using IceCreamDataBaseV3.Handler.PrivMsg;
+using IceCreamDataBaseV3.Handler.Commands;
+using IceCreamDataBaseV3.Handler.IndividualUserReplies;
 using IceCreamDataBaseV3.Handler.UserNotice;
 using IceCreamDataBaseV3.Model;
 using TwitchIrcHubClient;
@@ -9,7 +10,8 @@ namespace IceCreamDataBaseV3;
 public class Bot
 {
     private readonly IrcHubClient _hub;
-    private readonly PrivMsgHandler _privMsgHandler;
+    private readonly CommandHandler _commandHandler;
+    private readonly IndividualUserReplyHandler _individualUserReplyHandler;
     private readonly UserNoticeHandler _userNoticeHandler;
 
     public Bot()
@@ -22,7 +24,8 @@ public class Bot
         _hub = new IrcHubClient(Program.ConfigRoot.TwitchIrcHub.AppIdKey, Program.ConfigRoot.TwitchIrcHub.HubRootUri);
         _hub.IncomingIrcEvents.OnConnId += OnConnId;
 
-        _privMsgHandler = new PrivMsgHandler(_hub);
+        _commandHandler = new CommandHandler(_hub);
+        _individualUserReplyHandler = new IndividualUserReplyHandler(_hub);
         _userNoticeHandler = new UserNoticeHandler(_hub);
     }
 

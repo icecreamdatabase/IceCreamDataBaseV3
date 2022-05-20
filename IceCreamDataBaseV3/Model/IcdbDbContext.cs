@@ -21,6 +21,7 @@ public sealed class IcdbDbContext : DbContext
     public DbSet<CommandGroupLink> CommandGroupLinks { get; set; } = null!;
     public DbSet<CommandGroup> CommandGroups { get; set; } = null!;
     public DbSet<UserNoticeResponse> UserNoticeResponses { get; set; } = null!;
+    public DbSet<IndividualUserReply> IndividualUserReplies { get; set; } = null!;
 
     private static bool _firstTime;
 
@@ -51,5 +52,6 @@ public sealed class IcdbDbContext : DbContext
         CommandGroupLink.BuildModel(modelBuilder);
         CommandGroup.BuildModel(modelBuilder);
         UserNoticeResponse.BuildModel(modelBuilder);
+        IndividualUserReply.BuildModel(modelBuilder);
     }
 }
