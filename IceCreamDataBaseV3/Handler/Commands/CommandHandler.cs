@@ -13,6 +13,7 @@ namespace IceCreamDataBaseV3.Handler.Commands;
 
 public class CommandHandler
 {
+    private static readonly HttpClient HttpClient = new();
     private readonly IrcHubClient _hub;
     private readonly CommandParameterHelper _commandParameterHelper;
 
@@ -62,6 +63,36 @@ public class CommandHandler
             _hub.Dispose();
             await Task.Delay(500);
             Environment.Exit(0);
+        }
+        else if (ircPrivMsg.Message.StartsWith("<batchsay "))
+        {
+            string input = ircPrivMsg.Message[10..];
+            string[] inputSplit = input.Split(" ");
+            bool sameConnection = inputSplit.Length > 1 && inputSplit[1] == "true";
+
+            if (Uri.IsWellFormedUriString(inputSplit[0], UriKind.Absolute))
+            {
+                Uri uri = new Uri(inputSplit[0]);
+                if (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
+                {
+                    string content = await HttpClient.GetStringAsync(uri);
+
+                    string[] splitMessage = content.Split(Environment.NewLine);
+                    foreach (string message in splitMessage)
+                    {
+                        await _hub.OutgoingIrcEvents.SendPrivMsg(
+                            new PrivMsgToTwitch(
+                                botUserId,
+                                ircPrivMsg.RoomName,
+                                message,
+                                null,
+                                null,
+                                sameConnection
+                            )
+                        );
+                    }
+                }
+            }
         }
         else if (ircPrivMsg.Message.StartsWith("<eval "))
         {
