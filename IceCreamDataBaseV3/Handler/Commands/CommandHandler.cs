@@ -32,7 +32,6 @@ public class CommandHandler
     private async void OnNewIrcPrivMsg(int botUserId, IrcPrivMsg ircPrivMsg)
     {
         //Console.WriteLine($"{botUserId} <-- #{ircPrivMsg.RoomName} {ircPrivMsg.UserName}: {ircPrivMsg.Message}");
-        return;
 
         await CheckHardCoded(botUserId, ircPrivMsg);
         UpdateBagsIfRequired();
