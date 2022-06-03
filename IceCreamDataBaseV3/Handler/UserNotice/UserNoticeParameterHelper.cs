@@ -34,6 +34,12 @@ public static class UserNoticeParameterHelper
         RegexOptions.Compiled & RegexOptions.CultureInvariant & RegexOptions.IgnoreCase,
         TimeSpan.FromMilliseconds(50)
     );
+    
+    private static readonly Regex RegexMessage = new(
+        "\\${message}",
+        RegexOptions.Compiled & RegexOptions.CultureInvariant & RegexOptions.IgnoreCase,
+        TimeSpan.FromMilliseconds(50)
+    );
 
     internal static string HandleUserNoticeParameters(IrcUserNotice ircUserNotice, string response)
     {
@@ -57,6 +63,8 @@ public static class UserNoticeParameterHelper
                 response = RegexSecondUser.Replace(response, ircUserNotice.MsgParamSenderName);
             else if (!string.IsNullOrEmpty(ircUserNotice.MsgParamSenderLogin))
                 response = RegexSecondUser.Replace(response, ircUserNotice.MsgParamSenderLogin);
+        if (RegexMessage.IsMatch(response))
+            response = RegexMessage.Replace(response, ircUserNotice.Message ?? string.Empty);
 
         return response;
     }
