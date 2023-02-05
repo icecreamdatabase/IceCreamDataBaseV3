@@ -79,6 +79,12 @@ public class CommandParameterHelper
         TimeSpan.FromMilliseconds(50)
     );
 
+    private static readonly Regex RegexRandom = new(
+        "\\$random{([^\\}]*)}",
+        RegexOptions.Compiled & RegexOptions.CultureInvariant & RegexOptions.IgnoreCase,
+        TimeSpan.FromMilliseconds(50)
+    );
+
     private static readonly Random Rnd = new();
 
 
@@ -113,6 +119,12 @@ public class CommandParameterHelper
         }
         //if (RegexGdq.IsMatch(response))
         //    response = RegexGdq.Replace(response, );
+        if (RegexRandom.IsMatch(response))
+        {
+            string[] options = RegexRandom.Match(response).Groups[1].Value.Split('|');
+            string selection = options[Rnd.Next(0, options.Length)].Trim();
+            response = RegexRandom.Replace(response, selection);
+        }
 
         return response;
     }
