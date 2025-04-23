@@ -29,11 +29,11 @@ public class Command
 
     [Required]
     [MaxLength(255)]
-    [MySqlCharset("utf8mb4")]
+    [MySQLCharset("utf8mb4")]
     public string TriggerPhrase { get; set; } = null!;
 
     [Required]
-    [MySqlCharset("utf8mb4")]
+    [MySQLCharset("utf8mb4")]
     public string Response { get; set; } = null!;
 
     [Required]

@@ -25,7 +25,7 @@ public class UserNoticeResponse
     public UserNoticeMessageId MessageId { get; set; }
 
     [Required]
-    [MySqlCharset("utf8mb4")]
+    [MySQLCharset("utf8mb4")]
     public string Response { get; set; } = null!;
 
     protected internal static void BuildModel(ModelBuilder modelBuilder)
