@@ -1,4 +1,4 @@
-﻿FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build-env
+﻿FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build-env
 WORKDIR /app
 EXPOSE 80
 EXPOSE 443
@@ -18,7 +18,7 @@ COPY IceCreamDataBaseV3/. ./IceCreamDataBaseV3/
 
 RUN dotnet publish -c Release -o /app/publish
 
-FROM mcr.microsoft.com/dotnet/runtime:6.0 AS final
+FROM mcr.microsoft.com/dotnet/runtime:9.0 AS final
 WORKDIR /app
 COPY --from=build-env /app/publish .
 ENTRYPOINT ["dotnet", "IceCreamDataBaseV3.dll"]
