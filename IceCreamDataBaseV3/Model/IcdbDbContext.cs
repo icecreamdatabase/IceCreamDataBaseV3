@@ -12,7 +12,7 @@ public sealed class IcdbDbContext : DbContext
     /// (We don't expose the DB to the internet.)
     /// https://stackoverflow.com/a/45108611
     /// </summary>
-    private const string AdditionalMySqlConfigurationParameters = ";TreatTinyAsBoolean=false;SslMode=none";
+    private const string AdditionalMySqlConfigurationParameters = ";TreatTinyAsBoolean=false;SslMode=Disabled";
 
     private readonly string _fullConString;
 
